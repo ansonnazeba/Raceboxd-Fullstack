@@ -2,8 +2,7 @@ package com.raceboxd.backend.controller;
 
 import com.raceboxd.backend.model.Race;
 import com.raceboxd.backend.model.Review;
-import com.raceboxd.backend.repository.RaceRepository;
-import com.raceboxd.backend.repository.ReviewRepository;
+import com.raceboxd.backend.service.*;
 
 import org.springframework.web.bind.annotation.*;
 import java.util.List;
@@ -13,37 +12,36 @@ import java.util.List;
 @CrossOrigin(origins = "http://localhost:3000")
 public class RaceController {
 
-    private final RaceRepository raceRepository;
-    private final ReviewRepository reviewRepository;
+    private final RaceService raceService;
+    private final ReviewService reviewService;
 
-    public RaceController(RaceRepository raceRepository, ReviewRepository reviewRepository) {
-        this.raceRepository = raceRepository;
-        this.reviewRepository = reviewRepository;
+    public RaceController(RaceService raceService, ReviewService reviewService) {
+        this.raceService = raceService;
+        this.reviewService = reviewService;
     }
 
     @GetMapping
     public List<Race> getAllRaces() {
-        return raceRepository.findAll();
+        return raceService.getAllRaces();
     }
 
     @GetMapping("/{code}")
     public Race getRaceByCode(@PathVariable String code) {
-        return raceRepository.findByCode(code)
-                .orElseThrow(() -> new RuntimeException("Race not found: " + code));
+        return raceService.getRaceByCode(code);
     }
 
     @PostMapping("/{code}/reviews")
     public Review addReview(@PathVariable String code, @RequestBody Review review) {
-        Race race = raceRepository.findByCode(code)
-                .orElseThrow(() -> new RuntimeException("Race not found: " + code));
-        review.setRace(race);
-        return reviewRepository.save(review);
+        return reviewService.addReview(code, review);
     }
 
     @GetMapping("/{code}/reviews")
     public List<Review> getReviews(@PathVariable String code) {
-    Race race = raceRepository.findByCode(code)
-            .orElseThrow(() -> new RuntimeException("Race not found: " + code));
-    return reviewRepository.findByRaceId(race.getId());
-}
+        return reviewService.getReviewsByRaceCode(code);
+    }
+
+    @GetMapping("/season/{season}")
+    public List<Race> getRacesBySeason(@PathVariable int season) {
+        return raceService.getRacesBySeason(season);
+    }
 }
