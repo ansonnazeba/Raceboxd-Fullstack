@@ -2,35 +2,50 @@ import React, { useState, useEffect } from "react";
 import RaceCard from "./Racecard";
 import TopRated from "./TopRated";
 import RatedRaces from "./RatedRaces";
+import "./App.css";
 
 function App() {
   const [selectedYear, setSelectedYear] = useState("2025");
   const [raceData, setRaceData] = useState({});
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
 
   // Fetch races from backend and group by year
   useEffect(() => {
     fetch("http://localhost:8080/api/races")
-      .then((response) => response.json())
+      .then((response) => {
+        if (!response.ok) {
+          throw new Error("Failed to load races");
+        }
+        return response.json();
+      })
       .then((data) => {
         const grouped = data.reduce((acc, race) => {
-          const year = race.season; // handle either field name
-          console.log("Race:", race);
+          const year = String(race.season);
+          const savedReview = JSON.parse(localStorage.getItem(`race-${race.id}`)) || {};
+          const hydratedRace = {
+            ...race,
+            userRating: savedReview.userRating ?? race.userRating ?? 0,
+            userReview: savedReview.userReview ?? race.userReview ?? "",
+          };
+
           if (!acc[year]) acc[year] = [];
-          acc[year].push(race);
+          acc[year].push(hydratedRace);
           return acc;
         }, {});
+
+        const sortedYears = Object.keys(grouped).sort((a, b) => Number(b) - Number(a));
         setRaceData(grouped);
+        setSelectedYear(sortedYears[0] || "2025");
         setLoading(false);
+        setError("");
       })
       .catch((error) => {
         console.error("Error fetching races:", error);
+        setError("The paddock feed is down. Make sure the backend is running on port 8080.");
         setLoading(false);
       });
   }, []);
-
-  // Load user reviews/ratings from localStorage
-  
 
   // Save race data to localStorage whenever updated
   useEffect(() => {
@@ -41,16 +56,18 @@ function App() {
 
   // Handle submitting a review
   const handleSubmitReview = (raceId, newRating, newReview) => {
-    const updatedYear = raceData[selectedYear].map((r) =>
-      r.id === raceId
-        ? { ...r, userRating: newRating, userReview: newReview }
-        : r
+    setRaceData((prev) =>
+      Object.fromEntries(
+        Object.entries(prev).map(([year, races]) => [
+          year,
+          races.map((race) =>
+            race.id === raceId
+              ? { ...race, userRating: newRating, userReview: newReview }
+              : race
+          ),
+        ])
+      )
     );
-
-    setRaceData((prev) => ({
-      ...prev,
-      [selectedYear]: updatedYear,
-    }));
 
     localStorage.setItem(
       `race-${raceId}`,
@@ -58,95 +75,123 @@ function App() {
     );
   };
 
+  const seasons = Object.keys(raceData).sort((a, b) => Number(b) - Number(a));
+  const seasonRaces = raceData[selectedYear] || [];
+  const allRaces = Object.values(raceData).flat();
+  const ratedRaces = allRaces.filter((race) => race.userRating > 0);
+  const averageRating = ratedRaces.length
+    ? (ratedRaces.reduce((total, race) => total + race.userRating, 0) / ratedRaces.length).toFixed(1)
+    : "0.0";
+  const latestRace = seasonRaces[seasonRaces.length - 1];
+
   return (
-    <div style={appStyle}>
-      <h1>🏎️ RaceBoxd</h1>
-      <p style={{ fontSize: "20px", marginBottom: "24px", color: "#f4ecec" }}>
-        Explore and review your favorite Formula 1 races by year.
-      </p>
+    <div className="app-shell">
+      <div className="app-shell__overlay" />
+      <main className="app-container">
+        <section className="hero">
+          <div className="hero__panel">
+            <p className="hero__eyebrow">Formula 1 archive / fan journal</p>
+            <h1 className="hero__title">RaceBoxd</h1>
+            <p className="hero__lead">
+              A cleaner race log for fans who remember the tyre calls, safety cars,
+              late-braking moves and weekends worth rating twice.
+            </p>
 
-      <TopRated raceData={raceData} />
-      <RatedRaces />
+            <div className="hero__stats">
+              <div className="stat-card">
+                <span className="stat-card__label">Rated weekends</span>
+                <strong className="stat-card__value">{ratedRaces.length}</strong>
+              </div>
+              <div className="stat-card">
+                <span className="stat-card__label">Average score</span>
+                <strong className="stat-card__value">{averageRating}</strong>
+              </div>
+              <div className="stat-card">
+                <span className="stat-card__label">Seasons tracked</span>
+                <strong className="stat-card__value">{seasons.length}</strong>
+              </div>
+            </div>
+          </div>
 
-      <div className="year-selector" style={yearSelectorStyle}>
-        <label htmlFor="year-select">Select Year: </label>
-        <select
-          id="year-select"
-          value={selectedYear}
-          onChange={(e) => setSelectedYear(e.target.value)}
-        >
-          {Object.keys(raceData).map((year) => (
-            <option key={year} value={year}>
-              {year}
-            </option>
-          ))}
-        </select>
-      </div>
+          <aside className="hero__aside">
+            <div className="hero__aside-card">
+              <p className="summary-kicker">Selected season</p>
+              <h2 className="summary-title">{selectedYear}</h2>
+              <div className="summary-meta">
+                <div>
+                  <span>Race weekends</span>
+                  <strong>{seasonRaces.length || "0"}</strong>
+                </div>
+                <div>
+                  <span>Reviewed</span>
+                  <strong>{seasonRaces.filter((race) => race.userRating > 0).length}</strong>
+                </div>
+              </div>
+              <p className="hero__aside-note">
+                {latestRace
+                  ? `Latest on the board: ${latestRace.name}`
+                  : "No calendar loaded for this season yet."}
+              </p>
+            </div>
+          </aside>
+        </section>
 
-      {loading ? (
-        <p>Loading races...</p>
-      ) : raceData[selectedYear] ? (
-        raceData[selectedYear].map((race) => (
-          <RaceCard
-            key={race.id}
-            race={race}
-            onSubmitReview={handleSubmitReview}
-            reviewTextareaStyle={{
-              width: "100%",
-              height: "80px",
-              padding: "10px",
-              fontSize: "18px",
-              fontWeight: "500",
-              color: "#fb0707",
-              borderRadius: "6px",
-              border: "1px solid #f50909",
-              resize: "vertical",
-            }}
-            submitButtonStyle={{
-              marginTop: "10px",
-              padding: "12px 24px",
-              fontSize: "20px",
-              backgroundColor: "#040404",
-              color: "white",
-              border: "none",
-              borderRadius: "8px",
-              cursor: "pointer",
-              boxShadow: "0 2px 5px rgba(0, 0, 0, 0.2)",
-            }}
-            cardBackgroundStyle={{
-              backgroundColor: "#f4eaea",
-              color: "#cc0000",
-              borderRadius: "10px",
-              padding: "24px",
-              marginBottom: "20px",
-              boxShadow: "0 4px 10px rgba(0, 0, 0, 0)",
-            }}
-          />
-        ))
-      ) : (
-        <p>No races found for {selectedYear}.</p>
-      )}
+        <section className="dashboard-grid">
+          <TopRated raceData={raceData} />
+          <RatedRaces raceData={raceData} />
+        </section>
+
+        <section className="season-toolbar">
+          <div>
+            <p className="summary-kicker">Season view</p>
+            <h2 className="season-toolbar__title">{selectedYear} race weekends</h2>
+          </div>
+
+          <label className="season-select" htmlFor="year-select">
+            <span>Season</span>
+            <select
+              id="year-select"
+              value={selectedYear}
+              onChange={(e) => setSelectedYear(e.target.value)}
+            >
+              {seasons.map((year) => (
+                <option key={year} value={year}>
+                  {year}
+                </option>
+              ))}
+            </select>
+          </label>
+        </section>
+
+        {loading ? (
+          <div className="status-card">
+            <p className="summary-kicker">Loading</p>
+            <h3>Pulling race data from the pit wall.</h3>
+          </div>
+        ) : error ? (
+          <div className="status-card status-card--error">
+            <p className="summary-kicker">Connection issue</p>
+            <h3>{error}</h3>
+          </div>
+        ) : seasonRaces.length > 0 ? (
+          <section className="race-grid">
+            {seasonRaces.map((race) => (
+              <RaceCard
+                key={race.id}
+                race={race}
+                onSubmitReview={handleSubmitReview}
+              />
+            ))}
+          </section>
+        ) : (
+          <div className="status-card">
+            <p className="summary-kicker">Empty season</p>
+            <h3>No races found for {selectedYear}.</h3>
+          </div>
+        )}
+      </main>
     </div>
   );
 }
-
-const appStyle = {
-  textAlign: "center",
-  fontFamily: "serif",
-  maxWidth: "700px",
-  margin: "auto",
-  padding: "24px",
-  backgroundColor: "#000000",
-  color: "#ffffff",
-};
-
-const yearSelectorStyle = {
-  display: "flex",
-  alignItems: "center",
-  gap: "10px",
-  marginBottom: "20px",
-  fontSize: "18px",
-  color: "#fcfcfc",
-};
 
 export default App;

@@ -1,38 +1,594 @@
-.App {
+.app-shell {
+  min-height: 100vh;
+  position: relative;
+  overflow: hidden;
+}
+
+.app-shell__overlay {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  background-image:
+    linear-gradient(to right, rgba(255, 255, 255, 0.04) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(255, 255, 255, 0.03) 1px, transparent 1px);
+  background-size: 72px 72px;
+  mask-image: linear-gradient(180deg, rgba(0, 0, 0, 0.9), transparent 90%);
+  opacity: 0.2;
+}
+
+.app-container {
+  max-width: 1220px;
+  margin: 0 auto;
+  padding: 32px 20px 72px;
+  position: relative;
+  z-index: 1;
+}
+
+.hero {
+  display: grid;
+  grid-template-columns: minmax(0, 1.5fr) minmax(300px, 0.8fr);
+  gap: 20px;
+  margin-bottom: 20px;
+}
+
+.hero__panel,
+.hero__aside-card,
+.summary-panel,
+.season-toolbar,
+.race-card,
+.status-card {
+  border: 1px solid var(--border-color);
+  background: linear-gradient(150deg, rgba(20, 22, 26, 0.92), rgba(9, 10, 12, 0.94));
+  box-shadow: 0 28px 80px rgba(0, 0, 0, 0.35);
+  backdrop-filter: blur(14px);
+}
+
+.hero__panel,
+.hero__aside-card,
+.summary-panel,
+.season-toolbar,
+.race-card,
+.status-card {
+  border-radius: 28px;
+}
+
+.hero__panel {
+  padding: 32px;
+  position: relative;
+  overflow: hidden;
+}
+
+.hero__panel::after {
+  content: "";
+  position: absolute;
+  right: -48px;
+  top: -24px;
+  width: 220px;
+  height: 220px;
+  border-radius: 999px;
+  background: radial-gradient(circle, rgba(255, 59, 48, 0.28) 0%, rgba(255, 59, 48, 0) 68%);
+  filter: blur(4px);
+}
+
+.hero__eyebrow,
+.summary-kicker {
+  margin: 0;
+  text-transform: uppercase;
+  letter-spacing: 0.34em;
+  font-size: 0.72rem;
+  color: var(--muted-text);
+}
+
+.hero__title,
+.summary-title,
+.season-toolbar__title,
+.race-card__title,
+.race-card__review-title {
+  font-family: "Bebas Neue", Impact, sans-serif;
+  letter-spacing: 0.04em;
+  margin: 0;
+}
+
+.hero__title {
+  font-size: clamp(4.6rem, 13vw, 7.4rem);
+  line-height: 0.92;
+  margin-top: 16px;
+}
+
+.hero__lead {
+  max-width: 38rem;
+  margin: 16px 0 0;
+  color: var(--soft-text);
+  font-size: 1.02rem;
+  line-height: 1.65;
+}
+
+.hero__stats {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 14px;
+  margin-top: 28px;
+}
+
+.stat-card {
+  padding: 16px 18px;
+  border-radius: 18px;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.07);
+}
+
+.stat-card__label {
+  display: block;
+  font-size: 0.8rem;
+  text-transform: uppercase;
+  letter-spacing: 0.16em;
+  color: var(--muted-text);
+  margin-bottom: 10px;
+}
+
+.stat-card__value {
+  display: block;
+  font-size: 2rem;
+  font-weight: 700;
+  color: var(--main-text);
+}
+
+.hero__aside {
+  display: flex;
+}
+
+.hero__aside-card {
+  width: 100%;
+  padding: 28px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+.summary-title {
+  font-size: 2.2rem;
+  line-height: 1;
+  margin-top: 10px;
+}
+
+.summary-meta {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px;
+  margin: 24px 0;
+}
+
+.summary-meta div {
+  padding: 14px 16px;
+  border-radius: 18px;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.summary-meta span {
+  display: block;
+  font-size: 0.78rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--muted-text);
+  margin-bottom: 8px;
+}
+
+.summary-meta strong {
+  font-size: 1.75rem;
+}
+
+.hero__aside-note,
+.summary-empty,
+.verdict-card__quote--muted {
+  color: var(--soft-text);
+  line-height: 1.6;
+}
+
+.dashboard-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 20px;
+  margin-bottom: 20px;
+}
+
+.summary-panel {
+  padding: 24px;
+}
+
+.summary-list {
+  list-style: none;
+  padding: 0;
+  margin: 20px 0 0;
+  display: grid;
+  gap: 12px;
+}
+
+.summary-list__item {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  align-items: center;
+  gap: 14px;
+  padding: 14px 16px;
+  border-radius: 18px;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.summary-list__rank {
+  font-family: "Bebas Neue", Impact, sans-serif;
+  font-size: 1.5rem;
+  color: var(--accent-color);
+}
+
+.summary-list__content {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.summary-list__content strong {
+  font-size: 0.96rem;
+}
+
+.summary-list__content span {
+  color: var(--muted-text);
+  font-size: 0.86rem;
+}
+
+.summary-list__score {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 12px;
+  border-radius: 999px;
+  font-size: 0.86rem;
+  background: rgba(255, 205, 74, 0.12);
+  border: 1px solid rgba(255, 205, 74, 0.22);
+  color: var(--star-color);
+}
+
+.verdict-stack {
+  display: grid;
+  gap: 12px;
+  margin-top: 20px;
+}
+
+.verdict-card {
+  padding: 16px;
+  border-radius: 18px;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.verdict-card__header {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  align-items: center;
+}
+
+.verdict-card__meta {
+  margin: 10px 0 8px;
+  color: var(--muted-text);
+  font-size: 0.84rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.verdict-card__quote {
+  margin: 0;
+  color: var(--soft-text);
+  line-height: 1.6;
+}
+
+.season-toolbar {
+  padding: 22px 24px;
+  margin-bottom: 20px;
+  display: flex;
+  justify-content: space-between;
+  gap: 18px;
+  align-items: end;
+}
+
+.season-toolbar__title {
+  font-size: 2.2rem;
+  line-height: 1;
+  margin-top: 10px;
+}
+
+.season-select {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  min-width: 170px;
+  color: var(--soft-text);
+}
+
+.season-select span {
+  font-size: 0.78rem;
+  text-transform: uppercase;
+  letter-spacing: 0.16em;
+  color: var(--muted-text);
+}
+
+.season-select select,
+.race-card__textarea,
+.race-card__button,
+.rating-button {
+  font: inherit;
+}
+
+.season-select select,
+.race-card__textarea {
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(255, 255, 255, 0.04);
+  color: var(--main-text);
+  border-radius: 16px;
+}
+
+.season-select select {
+  min-height: 52px;
+  padding: 0 16px;
+  appearance: none;
+}
+
+.race-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  gap: 20px;
+}
+
+.race-card {
+  padding: 24px;
+  transition: transform 180ms ease, border-color 180ms ease, box-shadow 180ms ease;
+}
+
+.race-card:hover {
+  transform: translateY(-4px);
+  border-color: rgba(255, 59, 48, 0.22);
+  box-shadow: 0 32px 90px rgba(0, 0, 0, 0.42);
+}
+
+.race-card--reviewed {
+  border-color: rgba(255, 59, 48, 0.18);
+}
+
+.race-card__header,
+.race-card__review-header,
+.race-card__actions {
+  display: flex;
+  justify-content: space-between;
+  align-items: start;
+  gap: 12px;
+}
+
+.race-card__meta {
+  margin: 0 0 10px;
+  color: var(--muted-text);
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  font-size: 0.76rem;
+}
+
+.race-card__title {
+  font-size: 2.2rem;
+  line-height: 0.98;
+  max-width: 14ch;
+}
+
+.race-card__badge {
+  display: inline-flex;
+  align-items: center;
+  min-height: 38px;
+  padding: 0 14px;
+  border-radius: 999px;
+  font-size: 0.84rem;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  color: var(--soft-text);
+}
+
+.race-card__facts {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+  margin: 18px 0;
+}
+
+.race-card__fact {
+  padding: 14px;
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.race-card__fact span {
+  display: block;
+  font-size: 0.74rem;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--muted-text);
+  margin-bottom: 8px;
+}
+
+.race-card__fact strong {
+  color: var(--main-text);
+  line-height: 1.45;
+}
+
+.race-card__review-title {
+  font-size: 1.6rem;
+  margin-top: 8px;
+}
+
+.race-card__feedback {
+  padding: 8px 12px;
+  border-radius: 999px;
+  font-size: 0.82rem;
+  border: 1px solid transparent;
+  color: var(--soft-text);
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.race-card__feedback--saving,
+.race-card__feedback--saved {
+  border-color: rgba(255, 255, 255, 0.08);
+}
+
+.race-card__feedback--success {
+  color: #ccecca;
+  border-color: rgba(137, 209, 138, 0.28);
+  background: rgba(137, 209, 138, 0.12);
+}
+
+.race-card__feedback--error {
+  color: #ffd4d4;
+  border-color: rgba(255, 122, 122, 0.28);
+  background: rgba(255, 122, 122, 0.12);
+}
+
+.rating-picker {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 10px;
+  margin: 18px 0 16px;
+}
+
+.rating-button {
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(255, 255, 255, 0.04);
+  color: var(--muted-text);
+  border-radius: 16px;
+  padding: 12px 8px;
+  cursor: pointer;
+  transition: transform 160ms ease, border-color 160ms ease, background 160ms ease;
+}
+
+.rating-button:hover {
+  transform: translateY(-2px);
+  border-color: rgba(255, 59, 48, 0.24);
+}
+
+.rating-button--active {
+  color: var(--main-text);
+  border-color: rgba(255, 59, 48, 0.42);
+  background: linear-gradient(180deg, rgba(255, 59, 48, 0.22), rgba(255, 59, 48, 0.08));
+}
+
+.rating-button__star,
+.rating-button__value {
+  display: block;
   text-align: center;
 }
 
-.App-logo {
-  height: 40vmin;
-  pointer-events: none;
+.rating-button__star {
+  color: var(--star-color);
+  font-size: 1rem;
+  margin-bottom: 4px;
 }
 
-@media (prefers-reduced-motion: no-preference) {
-  .App-logo {
-    animation: App-logo-spin infinite 20s linear;
-  }
+.rating-button__value {
+  font-size: 0.86rem;
+  font-weight: 700;
 }
 
-.App-header {
-  background-color: #282c34;
-  min-height: 100vh;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  font-size: calc(10px + 2vmin);
+.race-card__textarea {
+  width: 100%;
+  min-height: 126px;
+  padding: 15px 16px;
+  resize: vertical;
+  line-height: 1.6;
+}
+
+.race-card__textarea::placeholder {
+  color: rgba(226, 228, 231, 0.42);
+}
+
+.race-card__button {
+  border: none;
+  border-radius: 999px;
+  min-height: 48px;
+  padding: 0 22px;
+  background: linear-gradient(180deg, #ff5a4f, #d52016);
   color: white;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  cursor: pointer;
+  box-shadow: 0 18px 34px rgba(213, 32, 22, 0.28);
 }
 
-.App-link {
-  color: #61dafb;
+.race-card__button:disabled {
+  cursor: wait;
+  opacity: 0.8;
 }
 
-@keyframes App-logo-spin {
-  from {
-    transform: rotate(0deg);
+.status-card {
+  padding: 32px;
+}
+
+.status-card h3 {
+  margin: 12px 0 0;
+  font-size: 1.2rem;
+  color: var(--soft-text);
+}
+
+.status-card--error {
+  border-color: rgba(255, 122, 122, 0.22);
+}
+
+@media (max-width: 980px) {
+  .hero,
+  .dashboard-grid {
+    grid-template-columns: 1fr;
   }
-  to {
-    transform: rotate(360deg);
+
+  .hero__stats {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 720px) {
+  .app-container {
+    padding: 18px 14px 56px;
+  }
+
+  .hero__panel,
+  .hero__aside-card,
+  .summary-panel,
+  .season-toolbar,
+  .race-card,
+  .status-card {
+    border-radius: 22px;
+  }
+
+  .hero__panel,
+  .hero__aside-card,
+  .summary-panel,
+  .season-toolbar,
+  .race-card,
+  .status-card {
+    padding: 20px;
+  }
+
+  .season-toolbar,
+  .race-card__header,
+  .race-card__review-header,
+  .race-card__actions,
+  .verdict-card__header {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .race-card__facts {
+    grid-template-columns: 1fr;
+  }
+
+  .rating-picker {
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+  }
+
+  .summary-meta {
+    grid-template-columns: 1fr;
   }
 }

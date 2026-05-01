@@ -22,13 +22,13 @@ public class ReviewController {
         return reviewService.getReviews();
     }
 
-    @GetMapping("/race/{code}")
-    public List<Review> getReviewsByRaceCode(@PathVariable String code) {
-        return reviewService.getReviewsByRaceCode(code);
+    @GetMapping("/race/{raceId}")
+    public List<Review> getReviewsByRaceId(@PathVariable Long raceId) {
+        return reviewService.getReviewsByRaceId(raceId);
     }
 
-    @PostMapping("/race/{code}")
-    public Review addReview(@PathVariable String code, @RequestBody Review newReview) {
-        return reviewService.addReview(code, newReview);
+    @PostMapping("/race/{raceId}")
+    public Review addReview(@PathVariable Long raceId, @RequestBody Review newReview) {
+        return reviewService.addReview(raceId, newReview);
     }
 }

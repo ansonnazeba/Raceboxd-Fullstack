@@ -1,51 +1,33 @@
 import React from "react";
-import racesByYear  from "./racesByYear";
 
-function TopRated() {
-  // Flatten all races from all seasons
-  const allRaces = Object.values(racesByYear).flat();
-
-  // Merge in userRating from localStorage allowing distinct races per season
-  const ratedRaces = allRaces.reduce((acc, race) => {
-    const stored = localStorage.getItem(`race-${race.id}`);
-    if (stored) {
-      const parsed = JSON.parse(stored);
-      acc.push({ ...race, userRating: parsed.userRating });
-    }
-    return acc;
-  }, []);
-
-  // Filter races with a rating >= 4
-  const filteredRaces = ratedRaces.filter(r => r.userRating !== null && r.userRating >= 4);
-
-  // Remove duplicate race names unless from different seasons
-  const uniqueRaces = [];
-  const seen = new Set();
-  for (const race of filteredRaces) {
-    const key = `${race.name}-${race.season}`;
-    if (!seen.has(key)) {
-      seen.add(key);
-      uniqueRaces.push(race);
-    }
-  }
-  // Sort by rating descending and take top 5
-  const topRaces = uniqueRaces.sort((a, b) => b.userRating - a.userRating).slice(0, 5);
+function TopRated({ raceData }) {
+  const topRaces = Object.values(raceData)
+    .flat()
+    .filter((race) => race.userRating >= 4)
+    .sort((a, b) => b.userRating - a.userRating)
+    .slice(0, 5);
 
   return (
-    <div>
-      <h2>🔥 Top Rated Races (4★+)</h2>
+    <section className="summary-panel">
+      <p className="summary-kicker">Leaderboard</p>
+      <h2 className="summary-title">Top rated races</h2>
       {topRaces.length === 0 ? (
-        <p>No races rated yet.</p>
+        <p className="summary-empty">No races rated 4 stars or above yet.</p>
       ) : (
-        <ul>
+        <ol className="summary-list">
           {topRaces.map((race, index) => (
-            <li key={index}>
-              <strong>{race.name}</strong> ({race.season}) - ⭐ {race.userRating}
+            <li key={`${race.id}-${index}`} className="summary-list__item">
+              <span className="summary-list__rank">{String(index + 1).padStart(2, "0")}</span>
+              <div className="summary-list__content">
+                <strong>{race.name}</strong>
+                <span>{race.season}</span>
+              </div>
+              <span className="summary-list__score">★ {race.userRating}</span>
             </li>
           ))}
-        </ul>
+        </ol>
       )}
-    </div>
+    </section>
   );
 }
 

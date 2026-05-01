@@ -1,24 +1,24 @@
 import React, { useState, useEffect } from "react";
 
 function RaceCard({ race, onSubmitReview }) {
-  const savedData = JSON.parse(localStorage.getItem(`race-${race.id}`)) || {};
-
-  const [tempRating, setTempRating] = useState(
-    savedData.userRating ?? race.userRating ?? 0
-  );
-  const [tempReview, setTempReview] = useState(
-    (savedData.userReview ?? race.userReview) || ""
-  );
+  const [tempRating, setTempRating] = useState(race.userRating ?? 0);
+  const [tempReview, setTempReview] = useState(race.userReview ?? "");
+  const [feedback, setFeedback] = useState({ type: "idle", message: "" });
 
   useEffect(() => {
-    const saved = JSON.parse(localStorage.getItem(`race-${race.id}`));
-    if (saved) {
-      if (saved.userRating !== undefined) setTempRating(saved.userRating);
-      if (saved.userReview !== undefined) setTempReview(saved.userReview);
-    }
-  }, [race.id]);
+    setTempRating(race.userRating ?? 0);
+    setTempReview(race.userReview ?? "");
+    setFeedback({ type: "idle", message: "" });
+  }, [race.userRating, race.userReview]);
 
   const handleSubmit = () => {
+    if (tempRating === 0) {
+      setFeedback({ type: "error", message: "Pick a rating before logging the race." });
+      return;
+    }
+
+    setFeedback({ type: "saving", message: "Saving your verdict..." });
+
     // Create review data payload
     const reviewData = {
       review: tempReview,
@@ -31,80 +31,113 @@ function RaceCard({ race, onSubmitReview }) {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(reviewData),
     })
-      .then((res) => res.json())
+      .then(async (res) => {
+        const data = await res.json();
+        if (!res.ok) {
+          throw new Error(data.message || "Failed to save review");
+        }
+        return data;
+      })
       .then((savedReview) => {
-        console.log("Review saved:", savedReview);
-        alert("Review submitted successfully!");
-
-        // ✅ Clear form
-        setTempReview("");
-        setTempRating(0);
-
-        // ✅ Update parent so “Your Rated Races” refreshes
+        setFeedback({ type: "success", message: "Race logged to your journal." });
         onSubmitReview(race.id, savedReview.rating, savedReview.review);
       })
       .catch((error) => {
         console.error("Error saving review:", error);
-        alert("Error saving review. Check backend connection.");
+        setFeedback({
+          type: "error",
+          message: error.message || "Error saving review. Check backend connection.",
+        });
       });
   };
 
   return (
-    <div className="race-card" style={cardStyle}>
-      <h2>{race.name}</h2>
-      <p>
-        <strong>Date:</strong> {race.date}
-      </p>
-      <p>
-        <strong>Location:</strong> {race.location}
-      </p>
-      <p>
-        <strong>Winner:</strong> {race.winner}
-      </p>
+    <article className={`race-card ${race.userRating > 0 ? "race-card--reviewed" : ""}`}>
+      <div className="race-card__header">
+        <div>
+          <p className="race-card__meta">
+            Round {race.round} / {race.date}
+          </p>
+          <h3 className="race-card__title">{race.name}</h3>
+        </div>
 
-      <p>
-        <strong>Your Rating:</strong>{" "}
-        {[1, 2, 3, 4, 5].map((num) => (
-          <span
-            key={num}
-            onClick={() => setTempRating(num)}
-            style={{
-              cursor: "pointer",
-              color: num <= tempRating ? "#FFD700" : "#CCCCCC",
-              filter: num <= tempRating ? "none" : "brightness(75%)",
-              fontSize: "20px",
-              marginRight: "4px",
-            }}
-          >
-            ⭐
-          </span>
-        ))}
-      </p>
+        <span className="race-card__badge">
+          {race.userRating > 0 ? `${race.userRating}.0 / 5` : "Unrated"}
+        </span>
+      </div>
 
-      <div>
-        <strong>Your Review:</strong>
-        <br />
+      <div className="race-card__facts">
+        <div className="race-card__fact">
+          <span>Location</span>
+          <strong>{race.location}</strong>
+        </div>
+        <div className="race-card__fact">
+          <span>Winner</span>
+          <strong>{race.winner}</strong>
+        </div>
+        <div className="race-card__fact">
+          <span>Season</span>
+          <strong>{race.season}</strong>
+        </div>
+      </div>
+
+      <div className="race-card__review">
+        <div className="race-card__review-header">
+          <div>
+            <p className="summary-kicker">Your verdict</p>
+            <h4 className="race-card__review-title">How did this weekend rate?</h4>
+          </div>
+          {feedback.message ? (
+            <span className={`race-card__feedback race-card__feedback--${feedback.type}`}>
+              {feedback.message}
+            </span>
+          ) : race.userRating > 0 ? (
+            <span className="race-card__feedback race-card__feedback--saved">
+              Stored locally
+            </span>
+          ) : null}
+        </div>
+
+        <div className="rating-picker" role="radiogroup" aria-label={`Rate ${race.name}`}>
+          {[1, 2, 3, 4, 5].map((num) => (
+            <button
+              key={num}
+              type="button"
+              className={`rating-button ${num <= tempRating ? "rating-button--active" : ""}`}
+              aria-pressed={num === tempRating}
+              onClick={() => setTempRating(num)}
+            >
+              <span className="rating-button__star">★</span>
+              <span className="rating-button__value">{num}</span>
+            </button>
+          ))}
+        </div>
+
         <textarea
+          className="race-card__textarea"
           value={tempReview}
           onChange={(e) => setTempReview(e.target.value)}
-          rows={3}
-          cols={40}
-          placeholder="Write your thoughts..."
+          rows={4}
+          placeholder="Strategy chaos, tyre calls, overtakes, safety cars. What made this one memorable?"
         />
-        <br />
-        <button onClick={handleSubmit}>Submit Review</button>
+
+        <div className="race-card__actions">
+          <button
+            type="button"
+            className="race-card__button"
+            onClick={handleSubmit}
+            disabled={feedback.type === "saving"}
+          >
+            {feedback.type === "saving"
+              ? "Saving..."
+              : race.userRating > 0
+                ? "Update verdict"
+                : "Save verdict"}
+          </button>
+        </div>
       </div>
-    </div>
+    </article>
   );
 }
-
-const cardStyle = {
-  border: "1px solid #ccc",
-  padding: "16px",
-  margin: "12px 0",
-  borderRadius: "8px",
-  backgroundColor: "#fff",
-  color: "#000",
-};
 
 export default RaceCard;

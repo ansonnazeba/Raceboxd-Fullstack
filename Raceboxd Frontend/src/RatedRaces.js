@@ -1,49 +1,40 @@
-
-
 import React from "react";
-import  racesByYear from "./racesByYear";
 
-function RatedRaces() {
-  const ratedRaces = [];
-
-  Object.keys(localStorage).forEach((key) => {
-    if (key.startsWith("race-")) {
-      const raceId = key.replace("race-", "");
-      const saved = JSON.parse(localStorage.getItem(key));
-      const race = Object.values(racesByYear)
-        .flat()
-        .find((r) => r.id === raceId);
-
-      if (race && saved.userRating) {
-        ratedRaces.push({ ...race, ...saved });
-      }
-    }
-  });
+function RatedRaces({ raceData }) {
+  const ratedRaces = Object.values(raceData)
+    .flat()
+    .filter((race) => race.userRating > 0)
+    .sort((a, b) => b.userRating - a.userRating);
 
   return (
-    <div style={{ padding: "20px", color: "#f2f2f2" }}>
-      <h2>Your Rated Races</h2>
+    <section className="summary-panel">
+      <p className="summary-kicker">Journal</p>
+      <h2 className="summary-title">Your recent verdicts</h2>
       {ratedRaces.length === 0 ? (
-        <p>You haven’t rated any races yet.</p>
+        <p className="summary-empty">You have not logged any race weekends yet.</p>
       ) : (
-        ratedRaces.map((race) => (
-          <div
-            key={race.id}
-            style={{
-              background: "#222",
-              padding: "16px",
-              marginBottom: "12px",
-              borderRadius: "10px",
-              boxShadow: "0 0 10px rgba(0,0,0,0.3)"
-            }}
-          >
-            <strong>{race.name}</strong> ({race.date})<br />
-            ⭐ {race.userRating}/5<br />
-            {race.userReview && <em>"{race.userReview}"</em>}
-          </div>
-        ))
+        <div className="verdict-stack">
+          {ratedRaces.slice(0, 5).map((race) => (
+            <article key={race.id} className="verdict-card">
+              <div className="verdict-card__header">
+                <strong>{race.name}</strong>
+                <span className="summary-list__score">★ {race.userRating}</span>
+              </div>
+              <p className="verdict-card__meta">
+                {race.season} / {race.date}
+              </p>
+              {race.userReview ? (
+                <p className="verdict-card__quote">“{race.userReview}”</p>
+              ) : (
+                <p className="verdict-card__quote verdict-card__quote--muted">
+                  No written review yet, just the score.
+                </p>
+              )}
+            </article>
+          ))}
+        </div>
       )}
-    </div>
+    </section>
   );
 }
 

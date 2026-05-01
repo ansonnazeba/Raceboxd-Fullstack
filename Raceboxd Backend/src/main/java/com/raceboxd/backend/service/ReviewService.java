@@ -21,16 +21,16 @@ public class ReviewService {
     public List<Review> getReviews() {
         return reviewRepo.findAll();
     }
-    public Review addReview(String code, Review review) {
-        Race race = raceRepo.findByCode(code)
-                .orElseThrow(() -> new RaceNotFoundException(code));
+    public Review addReview(Long raceId, Review review) {
+        Race race = raceRepo.findById(raceId)
+                .orElseThrow(() -> new RaceNotFoundException(raceId));
         review.setRace(race);
         return reviewRepo.save(review);
     }
 
-    public List<Review> getReviewsByRaceCode(String code) {
-        Race race = raceRepo.findByCode(code)
-                .orElseThrow(() -> new RaceNotFoundException(code));
+    public List<Review> getReviewsByRaceId(Long raceId) {
+        Race race = raceRepo.findById(raceId)
+                .orElseThrow(() -> new RaceNotFoundException(raceId));
 
         return reviewRepo.findByRaceId(race.getId());
     }

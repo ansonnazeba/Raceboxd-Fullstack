@@ -25,19 +25,24 @@ public class RaceController {
         return raceService.getAllRaces();
     }
 
-    @GetMapping("/{code}")
-    public Race getRaceByCode(@PathVariable String code) {
-        return raceService.getRaceByCode(code);
+    @GetMapping("/{raceId}")
+    public Race getRaceById(@PathVariable Long raceId) {
+        return raceService.getRaceById(raceId);
     }
 
-    @PostMapping("/{code}/reviews")
-    public Review addReview(@PathVariable String code, @RequestBody Review review) {
-        return reviewService.addReview(code, review);
+    @GetMapping("/code/{code}")
+    public List<Race> getRacesByCode(@PathVariable String code) {
+        return raceService.getRacesByCode(code);
     }
 
-    @GetMapping("/{code}/reviews")
-    public List<Review> getReviews(@PathVariable String code) {
-        return reviewService.getReviewsByRaceCode(code);
+    @PostMapping("/{raceId}/reviews")
+    public Review addReview(@PathVariable Long raceId, @RequestBody Review review) {
+        return reviewService.addReview(raceId, review);
+    }
+
+    @GetMapping("/{raceId}/reviews")
+    public List<Review> getReviews(@PathVariable Long raceId) {
+        return reviewService.getReviewsByRaceId(raceId);
     }
 
     @GetMapping("/season/{season}")

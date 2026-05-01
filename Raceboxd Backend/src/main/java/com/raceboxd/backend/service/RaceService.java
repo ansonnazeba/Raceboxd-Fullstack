@@ -9,7 +9,6 @@ import java.util.List;
 @Service
 public class RaceService {
     private final RaceRepository raceRepo;
-//    private final ReviewService revService;
 
     public RaceService(RaceRepository raceRepo) {
         this.raceRepo = raceRepo;
@@ -23,8 +22,16 @@ public class RaceService {
         return raceRepo.findBySeason(season);
     }
 
-    public Race getRaceByCode(String code) {
-        return raceRepo.findByCode(code)
-                .orElseThrow(() -> new RaceNotFoundException(code));
+    public Race getRaceById(Long id) {
+        return raceRepo.findById(id)
+                .orElseThrow(() -> new RaceNotFoundException(id));
+    }
+
+    public List<Race> getRacesByCode(String code) {
+        List<Race> races = raceRepo.findAllByCode(code);
+        if (races.isEmpty()) {
+            throw new RaceNotFoundException(code);
+        }
+        return races;
     }
 }
