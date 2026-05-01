@@ -11,6 +11,10 @@ public class DataLoader {
     @Bean
     CommandLineRunner initDatabase(RaceRepository raceRepository) {
         return args -> {
+            if (raceRepository.count() > 0) {
+                return;
+            }
+
             // ===== 2025 Season =====
             raceRepository.save(new Race("melbourne", "LOUIS VUITTON AUSTRALIAN GRAND PRIX", "2025-03-16", "Albert Park Circuit, Melbourne, Australia", "Lando Norris", 2025, 1));
             raceRepository.save(new Race("shanghai", "STC SAUDI ARABIAN GRAND PRIX", "2025-03-23", "Shanghai International Circuit, Shanghai, China", "Oscar Piastri", 2025, 2));
